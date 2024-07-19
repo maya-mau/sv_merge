@@ -42,7 +42,15 @@ def load_features_from_vcf(
     r = 0
     for record in reader:
         info = record.INFO
+        call = record.calls[0]
+        if call.data["FT"] != ['PASS']:
+            print(call.data["FT"])
+            print(record.calls) 
+        """ if record.FILTER != ["PASS"]:
+            print(record.FILTER)
+            print(record) """
 
+        
         if filter_fn is not None:
             if not(filter_fn(record)):
                 continue 
@@ -105,8 +113,6 @@ def load_features_from_vcf(
         hapestry_reads_max_CCS = info["HAPESTRY_READS_MAX_CCS"] if "HAPESTRY_READS_MAX_CCS" in info else 0
         hapestry_reads_neighbors_CCS = info["HAPESTRY_READS_NEIGHBORS_CCS"] if "HAPESTRY_READS_NEIGHBORS_CCS" in info else 0
 
-        
-
         VG_AD = info["VG_AD"] if "VG_AD" in info else [0, 0]
         VG_MAD = info["VG_MAD"] if "VG_MAD" in info else 0
         VG_DP = info["VG_DP"] if "VG_DP" in info else 0
@@ -123,6 +129,13 @@ def load_features_from_vcf(
 
         VG_XD = info["VG_XD"] if "VG_XD" in info else 0
         
+        GT = list(map(float,call.data["GT"].replace('.','0').split("/"))) if '/' in call.data["GT"] else [0,0]
+        OLD_GT = list(map(float,call.data["OLD_GT"].replace('.','0').split("/"))) if '/' in call.data["OLD_GT"] else [0,0]
+        FT = [0]
+        ADF = call.data['ADF'] if "ADF" in call.data else [0,0]
+        ADR = call.data['ADR'] if "ADR" in call.data else [0,0]
+        PL = call.data['PL'] if "PL" in call.data else [0,0,0]
+            
 
         y.append(is_true)
         x.append([])
@@ -130,6 +143,7 @@ def load_features_from_vcf(
         q_score = record.QUAL if record.QUAL is not None else 0
         stdev_pos = float(info["STDEV_POS"]) if "STDEV_POS" in info else 0
         stdev_len = float(info["STDEV_LEN"]) if "STDEV_LEN" in info else 0
+
 
         x[-1].append(q_score)
         if r == 0:
@@ -158,6 +172,50 @@ def load_features_from_vcf(
         x[-1].extend(caller_support)
         if r == 0:
             feature_names.extend(["caller_support_" + str(i) for i in range(len(caller_support))])
+
+        # add vg features (illumina)
+        x[-1].extend(VG_AD)
+        if r == 0:
+            feature_names.extend(["VG_AD_" + str(i) for i in range(len(VG_AD))])
+
+        x[-1].append(VG_MAD)
+        if r == 0:
+            feature_names.append("VG_MAD")
+
+        x[-1].append(VG_DP)
+        if r == 0:
+            feature_names.append("VG_DP") 
+
+        x[-1].extend(VG_GL)
+        if r == 0:
+            feature_names.extend(["VG_GL_" + str(i) for i in range(len(VG_GL))])
+
+        x[-1].append(VG_GQ)
+        if r == 0:
+            feature_names.append("VG_GQ") 
+            
+        x[-1].append(VG_GP)
+        if r == 0:
+            feature_names.append("VG_GP")
+
+        x[-1].append(VG_XD)
+        if r == 0:
+            feature_names.append("VG_XD")
+
+        # add paragraph features (illumina)
+        x[-1].extend(GT)
+        if r == 0:
+            feature_names.extend(["GT_" + str(i) for i in range(len(GT))])
+
+        x[-1].extend(OLD_GT)
+        if r == 0:
+            feature_names.extend(["OLD_GT_" + str(i) for i in range(len(OLD_GT))])
+
+        # FT here
+
+
+
+
         
         if annotation_name.lower() == "hapestry":
             max_align_score = info["HAPESTRY_READS_MAX"] # is there a reason this is down here?
@@ -189,36 +247,7 @@ def load_features_from_vcf(
             
             x[-1].append(hapestry_reads_neighbors_CCS)
             if r == 0:
-                feature_names.append("happestry_reads_neighbors_CCS") 
- """
-            # add vg features (illumina)
-            x[-1].extend(VG_AD)
-            if r == 0:
-                feature_names.extend(["VG_AD_" + str(i) for i in range(len(VG_AD))])
-
-            x[-1].append(VG_MAD)
-            if r == 0:
-                feature_names.append("VG_MAD")
-
-            x[-1].append(VG_DP)
-            if r == 0:
-                feature_names.append("VG_DP") 
-
-            x[-1].extend(VG_GL)
-            if r == 0:
-                feature_names.extend(["VG_GL_" + str(i) for i in range(len(VG_GL))])
-
-            x[-1].append(VG_GQ)
-            if r == 0:
-                feature_names.append("VG_GQ") 
-            
-            x[-1].append(VG_GP)
-            if r == 0:
-                feature_names.append("VG_GP")
-
-            x[-1].append(VG_XD)
-            if r == 0:
-                feature_names.append("VG_XD")
+                feature_names.append("happestry_reads_neighbors_CCS") """ 
 
 
         elif annotation_name.lower() == "sniffles":
@@ -457,6 +486,7 @@ def load_features_from_vcf(
             if len(feature_names) != len(x[-1]):
                 print("ERROR: feature names and data length mismatch: names:%d x:%d" % (len(feature_names), len(x[-1])))
 
+        print(feature_names)
         r += 1        
 
 

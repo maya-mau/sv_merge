@@ -681,7 +681,11 @@ def main():
     # name_of_file = "_joint_calls_multiannotated_by_single_sample_8x_asm10_20bp.vcf.gz"
 
     # PB and VG with removing redundant calls using truvari collapse (use this for short and long reads combined)
-    path_to_data = "/data/mmau/data/intro/remove_redundant_calls_truvari/"
+    # path_to_data = "/data/mmau/data/intro/remove_redundant_calls_truvari/"
+    # name_of_file = "_joint_calls_multiannotated_by_single_sample_8x_asm10_20bp.vcf.gz"
+
+    # Truvari collapse VCFs with paragraph (short reads) genotyper
+    path_to_data = "/data/mmau/data/intro/paragraph_annotated_vcfs/"
     name_of_file = "_joint_calls_multiannotated_by_single_sample_8x_asm10_20bp.vcf.gz"
 
     train_vcfs = [
@@ -707,7 +711,7 @@ def main():
 
     # Which truth info and annotation names to use (these names are hardcoded in the dataloader to define its behavior)
     truth_info_names = ["Hapestry"]
-    truth_info_names = ["Hapestry", "TruvariBench_TP"] # uncommented this and and corresponding below to show labels on plot
+    truth_info_names = ["Hapestry", "TruvariBench_TP"] 
     annotation_names = ["Hapestry"]
     annotation_names = ["Hapestry", "Sniffles"]
 
@@ -716,7 +720,7 @@ def main():
     # filter_fn = None
 
     # Whether to subset the VCFs to >= 1000bp 
-    # filter_fn = min1000bp 
+    filter_fn = min1000bp 
 
     # Initialize some things for plotting
     fig = pyplot.figure()
